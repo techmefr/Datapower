@@ -1,0 +1,44 @@
+{
+  "name": "datapower",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Framework-agnostic test attributes system with build-time stripping",
+  "author": "techmefr",
+  "license": "MIT",
+  "homepage": "https://github.com/techmefr/Datapower#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/techmefr/Datapower.git"
+  },
+  "bugs": {
+    "url": "https://github.com/techmefr/Datapower/issues"
+  },
+  "keywords": [
+    "testing",
+    "test-attributes",
+    "e2e",
+    "playwright",
+    "cypress",
+    "nuxt",
+    "vue"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter @datapower/nuxt dev",
+    "build": "pnpm -r --filter=!playground build",
+    "test": "pnpm -r test",
+    "lint": "eslint .",
+    "typecheck": "pnpm -r typecheck",
+    "prepare": "pnpm build"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

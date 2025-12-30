@@ -1,0 +1,39 @@
+{
+  "name": "@datapower/core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic test attributes utilities",
+  "author": "Tcharlyto",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "unbuild": "^2.0.0",
+    "vitest": "^1.2.0",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "test",
+    "testing",
+    "attributes",
+    "data-attributes"
+  ]
+}
