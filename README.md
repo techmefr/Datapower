@@ -1,6 +1,7 @@
 # DataPower
 
-> Framework-agnostic test attributes system with build-time stripping
+> Framework-agnostic (as soon as, for the moment only nuxt
+) test attributes system with build-time stripping
 
 [![npm version](https://img.shields.io/npm/v/@datapower/nuxt.svg)](https://www.npmjs.com/package/@datapower/nuxt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -49,4 +50,4 @@ export default defineNuxtConfig({
 
 ## License
 
-MIT (c) Tcharlyto
+MIT (c) Techmefr
