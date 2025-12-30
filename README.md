@@ -1,10 +1,12 @@
 # DataPower
 
-> Framework-agnostic (as soon as, for the moment only nuxt
-) test attributes system with build-time stripping
+> Framework-agnostic test attributes system with build-time stripping
 
 [![npm version](https://img.shields.io/npm/v/@datapower/nuxt.svg)](https://www.npmjs.com/package/@datapower/nuxt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
+**Currently available:** Nuxt 3 module  
+**Coming soon:** Next.js, Astro, and more
 
 [English](./docs/en/README.md) | [Francais](./docs/fr/README.md)
 
@@ -30,13 +32,30 @@ export default defineNuxtConfig({
 })
 ```
 
+**Write this:**
 ```vue
-<template>
-  <button v-t-id="'login-submit'" v-t-class="'form-button'">
-    Login
-  </button>
-</template>
+<button v-t-id="'login-submit'" v-t-class="'form-button'">
+  Login
+</button>
 ```
+
+**Get this in development:**
+```html
+
+  Login
+
+```
+
+**Get this in production:**
+```html
+
+  Login
+
+```
+
+✨ Zero traces. Zero overhead. 100% clean.
+
+---
 
 ## Documentation
 
