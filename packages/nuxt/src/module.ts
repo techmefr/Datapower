@@ -10,6 +10,33 @@ import {
 
 export interface ModuleOptions extends DataPowerConfig {}
 
+/** Vue compiler AST node types */
+interface ASTNode {
+  type: number
+  props?: ASTProp[]
+}
+
+interface ASTProp {
+  type: number
+  name: string
+  exp?: ASTExpression
+  loc: ASTLocation
+}
+
+interface ASTExpression {
+  type: number
+  content: string
+  isStatic: boolean
+  constType: number
+  loc: ASTLocation
+}
+
+interface ASTLocation {
+  start: { offset: number; line: number; column: number }
+  end: { offset: number; line: number; column: number }
+  source: string
+}
+
 export default defineNuxtModule<ModuleOptions>({
   meta: {
     name: '@datapower/nuxt',
@@ -53,12 +80,15 @@ export default defineNuxtModule<ModuleOptions>({
       console.log(`⚪ DataPower [${currentEnv}]: Disabled`)
     }
 
-    // Directive name to attribute mapping (without v- prefix)
-    const directiveToAttr: Record<string, string> = {
-      't-id': 'data-test-id',
-      't-class': 'data-test-class',
-      't-present': 'data-test-present'
-    }
+    // Build directive name to attribute mapping from DIRECTIVE_MAPPING (without v- prefix)
+    const directiveToAttr: Record<string, string> = Object.entries(DIRECTIVE_MAPPING).reduce(
+      (acc, [directive, attr]) => {
+        const name = directive.replace('v-', '')
+        acc[name] = attr
+        return acc
+      },
+      {} as Record<string, string>
+    )
 
     // Configure Vite to transform and strip directives
     nuxt.hook('vite:extendConfig', (config) => {
@@ -70,11 +100,11 @@ export default defineNuxtModule<ModuleOptions>({
 
       config.vue.template.compilerOptions.nodeTransforms = [
         ...existingTransforms,
-        (node: any) => {
+        (node: ASTNode) => {
           if (node.type !== 1) return // Element node type
           if (!node.props) return
 
-          const newProps: any[] = []
+          const newProps: ASTProp[] = []
 
           for (const prop of node.props) {
             // Handle directives (type 7)
@@ -84,22 +114,27 @@ export default defineNuxtModule<ModuleOptions>({
               if (attrName) {
                 // This is one of our directives
                 if (allowedAttrs.includes(attrName)) {
-                  // Transform directive to attribute
-                  // Create a new attribute node with the expression value
+                  // Transform directive to v-bind with data-test-* attribute
                   newProps.push({
-                    type: 7, // Keep as directive for dynamic binding
+                    type: 7,
                     name: 'bind',
-                    arg: {
-                      type: 4, // Simple expression
-                      content: attrName,
-                      isStatic: true,
-                      constType: 3,
-                      loc: prop.loc
-                    },
                     exp: prop.exp,
-                    modifiers: [],
                     loc: prop.loc
+                  } as ASTProp & {
+                    arg: { type: number; content: string; isStatic: boolean; constType: number; loc: ASTLocation }
+                    modifiers: string[]
                   })
+
+                  // Manually add arg property for v-bind
+                  const lastProp = newProps[newProps.length - 1] as ASTProp & { arg?: object; modifiers?: string[] }
+                  lastProp.arg = {
+                    type: 4,
+                    content: attrName,
+                    isStatic: true,
+                    constType: 3,
+                    loc: prop.loc
+                  }
+                  lastProp.modifiers = []
                 }
                 // If not allowed, skip (strip)
                 continue
