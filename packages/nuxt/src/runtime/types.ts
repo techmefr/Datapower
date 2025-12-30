@@ -9,12 +9,6 @@ export interface DataPowerPlugin {
   enabled: boolean
 }
 
-declare module '#app' {
-  interface NuxtApp {
-    $datapower: DataPowerPlugin
-  }
-}
-
 declare module 'vue' {
   interface ComponentCustomProperties {
     $datapower: DataPowerPlugin

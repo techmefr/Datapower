@@ -1,8 +1,13 @@
 import { defineNuxtPlugin, useRuntimeConfig } from '#app'
 import { createHelpers } from '@datapower/core'
+import type { DirectiveBinding } from 'vue'
 
 export default defineNuxtPlugin((nuxtApp) => {
-  const config = useRuntimeConfig().public.datapower
+  const config = useRuntimeConfig().public.datapower as {
+    allowedAttributes: string[]
+    environment: string
+    enabled: boolean
+  }
   const allowedAttrs = config.allowedAttributes || []
 
   // Early return if disabled
@@ -14,7 +19,7 @@ export default defineNuxtPlugin((nuxtApp) => {
           tId: () => ({}),
           tClass: () => ({}),
           tPresent: () => ({}),
-          allowedAttributes: [],
+          allowedAttributes: [] as string[],
           environment: config.environment,
           enabled: false
         }
@@ -27,10 +32,10 @@ export default defineNuxtPlugin((nuxtApp) => {
   // Register v-t-id directive
   if (allowedAttrs.includes('data-test-id')) {
     nuxtApp.vueApp.directive('t-id', {
-      mounted(el, binding) {
+      mounted(el: HTMLElement, binding: DirectiveBinding<string>) {
         el.setAttribute('data-test-id', binding.value)
       },
-      updated(el, binding) {
+      updated(el: HTMLElement, binding: DirectiveBinding<string>) {
         el.setAttribute('data-test-id', binding.value)
       }
     })
@@ -39,10 +44,10 @@ export default defineNuxtPlugin((nuxtApp) => {
   // Register v-t-class directive
   if (allowedAttrs.includes('data-test-class')) {
     nuxtApp.vueApp.directive('t-class', {
-      mounted(el, binding) {
+      mounted(el: HTMLElement, binding: DirectiveBinding<string>) {
         el.setAttribute('data-test-class', binding.value)
       },
-      updated(el, binding) {
+      updated(el: HTMLElement, binding: DirectiveBinding<string>) {
         el.setAttribute('data-test-class', binding.value)
       }
     })
@@ -51,10 +56,10 @@ export default defineNuxtPlugin((nuxtApp) => {
   // Register v-t-present directive
   if (allowedAttrs.includes('data-test-present')) {
     nuxtApp.vueApp.directive('t-present', {
-      mounted(el, binding) {
+      mounted(el: HTMLElement, binding: DirectiveBinding<boolean>) {
         el.setAttribute('data-test-present', String(binding.value))
       },
-      updated(el, binding) {
+      updated(el: HTMLElement, binding: DirectiveBinding<boolean>) {
         el.setAttribute('data-test-present', String(binding.value))
       }
     })

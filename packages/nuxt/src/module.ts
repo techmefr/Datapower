@@ -7,35 +7,9 @@ import {
   DIRECTIVE_MAPPING,
   type DataPowerConfig
 } from '@datapower/core'
+import type { NodeTransform } from '@vue/compiler-core'
 
 export interface ModuleOptions extends DataPowerConfig {}
-
-/** Vue compiler AST node types */
-interface ASTNode {
-  type: number
-  props?: ASTProp[]
-}
-
-interface ASTProp {
-  type: number
-  name: string
-  exp?: ASTExpression
-  loc: ASTLocation
-}
-
-interface ASTExpression {
-  type: number
-  content: string
-  isStatic: boolean
-  constType: number
-  loc: ASTLocation
-}
-
-interface ASTLocation {
-  start: { offset: number; line: number; column: number }
-  end: { offset: number; line: number; column: number }
-  source: string
-}
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
@@ -92,68 +66,69 @@ export default defineNuxtModule<ModuleOptions>({
 
     // Configure Vite to transform and strip directives
     nuxt.hook('vite:extendConfig', (config) => {
-      config.vue = config.vue || {}
-      config.vue.template = config.vue.template || {}
-      config.vue.template.compilerOptions = config.vue.template.compilerOptions || {}
+      type VueConfig = { template?: { compilerOptions?: { nodeTransforms?: NodeTransform[] } } }
+      if (!config.vue) {
+        (config as { vue?: VueConfig }).vue = {}
+      }
+      const vueConfig = config.vue as VueConfig
+      vueConfig.template = vueConfig.template || {}
+      vueConfig.template.compilerOptions = vueConfig.template.compilerOptions || {}
 
-      const existingTransforms = config.vue.template.compilerOptions.nodeTransforms || []
+      const existingTransforms = vueConfig.template.compilerOptions.nodeTransforms || []
 
-      config.vue.template.compilerOptions.nodeTransforms = [
-        ...existingTransforms,
-        (node: ASTNode) => {
-          if (node.type !== 1) return // Element node type
-          if (!node.props) return
+      const datapowerTransform: NodeTransform = (node) => {
+        if (node.type !== 1) return // Element node type
+        if (!('props' in node)) return
 
-          const newProps: ASTProp[] = []
+        const elementNode = node as { props: Array<{ type: number; name: string; exp?: unknown; loc: unknown }> }
+        const newProps: Array<{ type: number; name: string; exp?: unknown; loc: unknown; arg?: unknown; modifiers?: string[] }> = []
 
-          for (const prop of node.props) {
-            // Handle directives (type 7)
-            if (prop.type === 7) {
-              const attrName = directiveToAttr[prop.name]
+        for (const prop of elementNode.props) {
+          // Handle directives (type 7)
+          if (prop.type === 7) {
+            const attrName = directiveToAttr[prop.name]
 
-              if (attrName) {
-                // This is one of our directives
-                if (allowedAttrs.includes(attrName)) {
-                  // Transform directive to v-bind with data-test-* attribute
-                  newProps.push({
-                    type: 7,
-                    name: 'bind',
-                    exp: prop.exp,
-                    loc: prop.loc
-                  } as ASTProp & {
-                    arg: { type: number; content: string; isStatic: boolean; constType: number; loc: ASTLocation }
-                    modifiers: string[]
-                  })
-
-                  // Manually add arg property for v-bind
-                  const lastProp = newProps[newProps.length - 1] as ASTProp & { arg?: object; modifiers?: string[] }
-                  lastProp.arg = {
+            if (attrName) {
+              // This is one of our directives
+              if (allowedAttrs.includes(attrName)) {
+                // Transform directive to v-bind with data-test-* attribute
+                newProps.push({
+                  type: 7,
+                  name: 'bind',
+                  exp: prop.exp,
+                  loc: prop.loc,
+                  arg: {
                     type: 4,
                     content: attrName,
                     isStatic: true,
                     constType: 3,
                     loc: prop.loc
-                  }
-                  lastProp.modifiers = []
-                }
-                // If not allowed, skip (strip)
-                continue
+                  },
+                  modifiers: []
+                })
               }
+              // If not allowed, skip (strip)
+              continue
             }
-
-            // Handle manual data-test-* attributes (type 6)
-            if (prop.type === 6) {
-              if (shouldStripAttribute(prop.name, allowedAttrs)) {
-                continue // Strip unauthorized attribute
-              }
-            }
-
-            // Keep all other props
-            newProps.push(prop)
           }
 
-          node.props = newProps
+          // Handle manual data-test-* attributes (type 6)
+          if (prop.type === 6) {
+            if (shouldStripAttribute(prop.name, allowedAttrs)) {
+              continue // Strip unauthorized attribute
+            }
+          }
+
+          // Keep all other props
+          newProps.push(prop)
         }
+
+        elementNode.props = newProps as typeof elementNode.props
+      }
+
+      vueConfig.template.compilerOptions.nodeTransforms = [
+        ...existingTransforms,
+        datapowerTransform
       ]
     })
   }
